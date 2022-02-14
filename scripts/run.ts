@@ -8,18 +8,21 @@ import { ethers } from 'hardhat';
 async function main() {
   const [_, randomPerson] = await ethers.getSigners();
   const waveContractFactory = await ethers.getContractFactory('WavePortal');
-  const waveContract = await waveContractFactory.deploy();
+  const waveContract = await waveContractFactory.deploy({
+    value: ethers.utils.parseEther('0.1'),
+  });
   await waveContract.deployed();
   console.log('Contract deployed to:', waveContract.address);
 
-  let waveCount;
-  waveCount = await waveContract.getTotalWaves();
-  console.log(waveCount.toNumber());
+  let contractBalance = await ethers.provider.getBalance(waveContract.address);
+
+  console.log('Contract balance:', ethers.utils.formatEther(contractBalance));
 
   let waveTxn = await waveContract.wave('A message!');
   await waveTxn.wait();
-  waveTxn = await waveContract.connect(randomPerson).wave('Another message!');
-  await waveTxn.wait();
+
+  contractBalance = await ethers.provider.getBalance(waveContract.address);
+  console.log('Contract balance:', ethers.utils.formatEther(contractBalance));
 
   let allWaves = await waveContract.getAllWaves();
   console.log(allWaves);
